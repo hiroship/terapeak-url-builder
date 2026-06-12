@@ -308,6 +308,38 @@
     .btn-open { background: #0ea5e9; color: #fff; }
     .copied   { background: var(--success) !important; }
 
+    /* ── Quick days chips ── */
+    .quick-days { display: flex; gap: 5px; }
+    .quick-day-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 5px 11px;
+      white-space: nowrap;
+      transition: border-color 0.12s, color 0.12s, background 0.12s;
+    }
+    .quick-day-btn:hover { border-color: var(--accent); }
+    .quick-day-btn.active {
+      border-color: var(--accent);
+      background: rgba(99,102,241,0.12);
+      color: var(--accent-hover);
+    }
+
+    /* ── Pager ── */
+    .pager { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .pager-btn { padding: 8px 12px; font-size: 0.8rem; }
+    .pager-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .pager-info {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      min-width: 34px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
     /* ── Misc ── */
     #dateRangeSection, #customDateSection { display: none; }
     #dateRangeSection.show, #customDateSection.show { display: flex; }
@@ -317,6 +349,8 @@
       .url-bar-inner  { flex-direction: column; align-items: stretch; }
       .url-btns { justify-content: stretch; }
       .url-btns .btn { flex: 1; }
+      .pager { justify-content: center; }
+      .quick-days { flex-wrap: wrap; }
     }
     @media (max-width: 380px) {
       .g2, .g3, .g4 { grid-template-columns: 1fr; }
@@ -366,6 +400,12 @@
         </label>
       </div>
       <div id="dateRangeSection" class="period-section show">
+        <div class="quick-days" id="quickDays">
+          <button type="button" class="quick-day-btn" data-days="1" onclick="setQuickDays(1)">1日</button>
+          <button type="button" class="quick-day-btn active" data-days="7" onclick="setQuickDays(7)">7日</button>
+          <button type="button" class="quick-day-btn" data-days="30" onclick="setQuickDays(30)">30日</button>
+          <button type="button" class="quick-day-btn" data-days="90" onclick="setQuickDays(90)">90日</button>
+        </div>
         <span class="period-lbl">過去</span>
         <input type="number" id="dayRange" value="7" min="1" max="365">
         <span class="period-lbl">日間</span>
@@ -607,6 +647,11 @@
 <div class="url-bar">
   <div class="url-bar-inner">
     <div class="url-display" id="urlOutput">（URLがここに表示されます）</div>
+    <div class="pager">
+      <button type="button" class="btn btn-copy pager-btn" id="prevPageBtn" onclick="pageMove(-1)">◀ 前</button>
+      <span class="pager-info" id="pageInfo">P.1</span>
+      <button type="button" class="btn btn-copy pager-btn" id="nextPageBtn" onclick="pageMove(1)">次 ▶</button>
+    </div>
     <div class="url-btns">
       <button type="button" class="btn btn-copy" id="copyBtn" onclick="copyUrl()">コピー</button>
       <button type="button" class="btn btn-open" onclick="openUrl()">eBay で開く</button>
@@ -756,6 +801,48 @@
 
     currentUrl = `https://www.ebay.com/sh/research?${params.toString()}`;
     document.getElementById('urlOutput').textContent = currentUrl;
+
+    updatePager();
+    updateQuickDays();
+  }
+
+  // --- ページ送り ---
+  function updatePager() {
+    const offset = parseInt(document.getElementById('offset').value) || 0;
+    const limit  = parseInt(document.getElementById('limit').value) || 50;
+    document.getElementById('pageInfo').textContent = `P.${Math.floor(offset / limit) + 1}`;
+    document.getElementById('prevPageBtn').disabled = offset <= 0;
+  }
+
+  function pageMove(dir) {
+    const offsetInput = document.getElementById('offset');
+    const limit = parseInt(document.getElementById('limit').value) || 50;
+    const next = Math.max(0, (parseInt(offsetInput.value) || 0) + dir * limit);
+    offsetInput.value = next;
+    generateUrl();
+    if (currentUrl) window.open(currentUrl, '_blank');
+  }
+
+  // --- クイック期間切替 ---
+  function setQuickDays(days) {
+    document.getElementById('dayRange').value = days;
+    // preset モードに強制
+    const presetRadio = document.querySelector('input[name="dateMode"][value="preset"]');
+    if (!presetRadio.checked) {
+      presetRadio.checked = true;
+      document.getElementById('dateRangeSection').classList.add('show');
+      document.getElementById('customDateSection').classList.remove('show');
+      document.getElementById('modePreset').classList.add('active');
+      document.getElementById('modeCustom').classList.remove('active');
+    }
+    generateUrl();
+  }
+
+  function updateQuickDays() {
+    const days = String(parseInt(document.getElementById('dayRange').value) || 0);
+    document.querySelectorAll('.quick-day-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.days === days);
+    });
   }
 
   function dayStartMs(date, tz) {
