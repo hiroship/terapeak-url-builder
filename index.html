@@ -651,6 +651,7 @@
       <button type="button" class="btn btn-copy pager-btn" id="prevPageBtn" onclick="pageMove(-1)">◀ 前</button>
       <span class="pager-info" id="pageInfo">P.1</span>
       <button type="button" class="btn btn-copy pager-btn" id="nextPageBtn" onclick="pageMove(1)">次 ▶</button>
+      <button type="button" class="btn btn-copy pager-btn" id="batchOpenBtn" onclick="openTenPages()" title="現在のページから10ページ分を一気にタブで開く">10P一括 ▶▶</button>
     </div>
     <div class="url-btns">
       <button type="button" class="btn btn-copy" id="copyBtn" onclick="copyUrl()">コピー</button>
@@ -821,6 +822,25 @@
     offsetInput.value = next;
     generateUrl();
     if (currentUrl) window.open(currentUrl, '_blank');
+  }
+
+  // --- 10ページ一括オープン ---
+  function openTenPages() {
+    const offsetInput = document.getElementById('offset');
+    const limit = parseInt(document.getElementById('limit').value) || 50;
+    const startOffset = parseInt(offsetInput.value) || 0;
+
+    const urls = [];
+    for (let i = 0; i < 10; i++) {
+      offsetInput.value = startOffset + i * limit;
+      generateUrl();
+      urls.push(currentUrl);
+    }
+    // フォームを元のオフセットに戻す
+    offsetInput.value = startOffset;
+    generateUrl();
+
+    urls.forEach(u => window.open(u, '_blank'));
   }
 
   // --- クイック期間切替 ---
