@@ -794,6 +794,7 @@
       kwParts.push(includeRaw);
     } else {
       kwParts.push('""');
+      if (excludeTags.length === 0) kwParts.push('-abcd'); // "" 単体は検索不可のためダミー除外を付与
     }
     excludeTags.forEach(k => kwParts.push(`-${k}`));
     const keywords = kwParts.join(' ');
