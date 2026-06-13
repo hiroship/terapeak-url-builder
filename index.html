@@ -639,7 +639,7 @@
       <summary>詳細設定（offset / 表示件数 / タイムゾーン）</summary>
       <div class="adv-body">
         <div class="g3">
-          <label>開始位置 (offset)<input type="number" id="offset" value="0" min="0" step="50"></label>
+          <label>開始位置 (offset)<select id="offset"></select></label>
           <label>
             表示件数 (limit)
             <select id="limit">
@@ -839,6 +839,36 @@
     updateQuickDays();
   }
 
+  // --- 開始位置セレクト（limit に連動して 1〜20ページ分を生成） ---
+  function rebuildOffsetOptions() {
+    const sel = document.getElementById('offset');
+    const limit = parseInt(document.getElementById('limit').value) || 50;
+    const cur = parseInt(sel.value) || 0;
+    sel.innerHTML = '';
+    for (let i = 0; i < 20; i++) {
+      const v = i * limit;
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = `${i + 1}ページ目 (${v})`;
+      sel.appendChild(opt);
+    }
+    setOffsetValue(cur);
+  }
+
+  function setOffsetValue(v) {
+    const sel = document.getElementById('offset');
+    if (![...sel.options].some(o => o.value === String(v))) {
+      const limit = parseInt(document.getElementById('limit').value) || 50;
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = `${Math.floor(v / limit) + 1}ページ目 (${v})`;
+      sel.appendChild(opt);
+    }
+    sel.value = String(v);
+  }
+
+  document.getElementById('limit').addEventListener('change', rebuildOffsetOptions);
+
   // --- ページ送り ---
   function updatePager() {
     const offset = parseInt(document.getElementById('offset').value) || 0;
@@ -848,28 +878,27 @@
   }
 
   function pageMove(dir) {
-    const offsetInput = document.getElementById('offset');
     const limit = parseInt(document.getElementById('limit').value) || 50;
-    const next = Math.max(0, (parseInt(offsetInput.value) || 0) + dir * limit);
-    offsetInput.value = next;
+    const next = Math.max(0, (parseInt(document.getElementById('offset').value) || 0) + dir * limit);
+    setOffsetValue(next);
     generateUrl();
     if (currentUrl) window.open(currentUrl, '_blank');
   }
 
   // --- 10ページ一括オープン ---
   function openTenPages() {
-    const offsetInput = document.getElementById('offset');
     const limit = parseInt(document.getElementById('limit').value) || 50;
-    const startOffset = parseInt(offsetInput.value) || 0;
+    const startOffset = parseInt(document.getElementById('offset').value) || 0;
 
     const urls = [];
     for (let i = 0; i < 10; i++) {
-      offsetInput.value = startOffset + i * limit;
+      setOffsetValue(startOffset + i * limit);
       generateUrl();
       urls.push(currentUrl);
     }
-    // フォームを元のオフセットに戻す
-    offsetInput.value = startOffset;
+    // フォームを元のオフセットに戻し、一時追加した選択肢を整理
+    rebuildOffsetOptions();
+    setOffsetValue(startOffset);
     generateUrl();
 
     urls.forEach(u => window.open(u, '_blank'));
@@ -978,8 +1007,9 @@
     document.getElementById('sellerCountry').value  = s.sellerCountry || 'JP';
     document.getElementById('sorting').value        = s.sorting || '-itemssold';
     document.getElementById('categorySelect').value = s.categoryId || '0';
-    document.getElementById('offset').value         = s.offset || '0';
     document.getElementById('limit').value          = s.limit || '50';
+    rebuildOffsetOptions();
+    setOffsetValue(parseInt(s.offset) || 0);
     document.getElementById('tz').value             = s.tz || 'Asia/Tokyo';
     document.querySelectorAll('#conditionGroup input').forEach(cb => {
       cb.checked = (s.conditionIds || []).includes(cb.value);
@@ -1075,6 +1105,7 @@
   }
 
   // Init
+  rebuildOffsetOptions();
   renderPresetList();
   generateUrl();
 </script>
