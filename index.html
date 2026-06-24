@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Terapeak URL ビルダー</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -23,6 +24,8 @@
       --text: #f4f4f6;
       --text-muted: #a6a6b0;
       --radius: 14px;
+      --cta: #3b82f6;
+      --cta-hover: #2f74e0;
     }
 
     body {
@@ -42,7 +45,11 @@
       font-weight: 700;
       letter-spacing: -0.01em;
       margin-bottom: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
     }
+    .app-header h1 i { color: var(--primary); font-size: 1.3rem; }
     .app-header p  { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.02em; }
 
     .container {
@@ -68,7 +75,11 @@
       letter-spacing: 0.12em;
       color: var(--text-muted);
       margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
+    .card-title i { font-size: 0.95rem; color: var(--primary); }
 
     /* ── Grid helpers ── */
     .g2 { display: grid; grid-template-columns: 1fr 1fr;             gap: 10px; }
@@ -181,7 +192,19 @@
       background: var(--primary-soft);
       font-weight: 600;
     }
-    .cond-item input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--primary); }
+    .cond-item input[type="checkbox"] { display: none; }
+    .cond-item::before {
+      content: '';
+      width: 13px; height: 13px;
+      border: 1.5px solid var(--border-hi);
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .cond-item:has(input:checked)::before {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
 
     /* ── Advanced details ── */
     details.adv { margin-top: 14px; }
@@ -239,10 +262,14 @@
       padding: 4px 10px;
       white-space: nowrap;
       transition: background 0.12s, color 0.12s, border-color 0.12s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
+    .preset-btn i { font-size: 0.88rem; }
     .preset-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--accent-soft); }
-    .preset-btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
-    .preset-btn.primary:hover { opacity: 0.88; background: var(--accent); color: var(--accent-text); }
+    .preset-btn.primary { background: var(--cta); color: #fff; border-color: var(--cta); font-weight: 600; }
+    .preset-btn.primary:hover { opacity: 1; background: var(--cta-hover); color: #fff; border-color: var(--cta-hover); }
     .preset-btn.del:hover { background: rgba(244,63,94,0.15); border-color: rgba(244,63,94,0.5); color: #fda4af; }
 
     /* ── Sticky URL bar ── */
@@ -287,18 +314,24 @@
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
+      transition: opacity 0.15s, transform 0.1s, background 0.15s;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
+    .btn i { font-size: 0.95rem; }
     .btn:hover  { opacity: 0.88; }
     .btn:active { transform: scale(0.97); }
     .btn-copy { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
     .btn-copy:hover { border-color: var(--border-hi); opacity: 1; }
     .btn-open {
-      background: var(--accent);
-      color: var(--accent-text);
+      background: var(--cta);
+      color: #fff;
       box-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
+    .btn-open:hover { background: var(--cta-hover); opacity: 1; }
     .copied { background: var(--success) !important; color: #06281c !important; }
 
     /* ── Quick days chips ── */
@@ -354,7 +387,7 @@
 <body>
 
 <div class="app-header">
-  <h1>Terapeak URL ビルダー</h1>
+  <h1><i class="ti ti-radar-2" aria-hidden="true"></i>Terapeak URL ビルダー</h1>
   <p>eBay リサーチ用クエリURLを簡単生成</p>
 </div>
 
@@ -362,7 +395,7 @@
 
   <!-- ① キーワード -->
   <div class="card">
-    <div class="card-title">キーワード</div>
+    <div class="card-title"><i class="ti ti-search" aria-hidden="true"></i>キーワード</div>
     <label>
       含めるキーワード
       <input type="text" id="includeInput" placeholder='例: ヴィンテージ 時計' oninput="generateUrl()">
@@ -372,7 +405,7 @@
 
   <!-- ② 検索条件 -->
   <div class="card">
-    <div class="card-title">検索条件</div>
+    <div class="card-title"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>検索条件</div>
 
     <!-- 期間 -->
     <div class="field-label">期間</div>
@@ -617,10 +650,10 @@
 
   <!-- ③ プリセット -->
   <div class="card">
-    <div class="card-title">プリセット保存 <span id="presetCount" style="font-weight:400;color:var(--text-muted)"></span></div>
+    <div class="card-title"><i class="ti ti-bookmark" aria-hidden="true"></i>プリセット保存 <span id="presetCount" style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0"></span></div>
     <div class="preset-save-row">
       <input type="text" id="presetName" placeholder="プリセット名を入力（例: JP出品者 ポケカ除外）" maxlength="30">
-      <button type="button" class="btn btn-open" style="padding:8px 18px;font-size:0.84rem" onclick="savePreset()">保存</button>
+      <button type="button" class="btn btn-open" style="padding:8px 18px;font-size:0.84rem" onclick="savePreset()"><i class="ti ti-device-floppy" aria-hidden="true"></i>保存</button>
     </div>
     <div id="presetList" class="preset-list"></div>
   </div>
@@ -632,14 +665,14 @@
   <div class="url-bar-inner">
     <div class="url-display" id="urlOutput">（URLがここに表示されます）</div>
     <div class="pager">
-      <button type="button" class="btn btn-copy pager-btn" id="prevPageBtn" onclick="pageMove(-1)">◀ 前</button>
+      <button type="button" class="btn btn-copy pager-btn" id="prevPageBtn" onclick="pageMove(-1)"><i class="ti ti-chevron-left" aria-hidden="true"></i>前</button>
       <span class="pager-info" id="pageInfo">P.1</span>
-      <button type="button" class="btn btn-copy pager-btn" id="nextPageBtn" onclick="pageMove(1)">次 ▶</button>
-      <button type="button" class="btn btn-copy pager-btn" id="batchOpenBtn" onclick="openTenPages()" title="現在のページから10ページ分を一気にタブで開く">10P一括 ▶▶</button>
+      <button type="button" class="btn btn-copy pager-btn" id="nextPageBtn" onclick="pageMove(1)">次<i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-copy pager-btn" id="batchOpenBtn" onclick="openTenPages()" title="現在のページから10ページ分を一気にタブで開く"><i class="ti ti-stack-2" aria-hidden="true"></i>10P一括</button>
     </div>
     <div class="url-btns">
-      <button type="button" class="btn btn-copy" id="copyBtn" onclick="copyUrl()">コピー</button>
-      <button type="button" class="btn btn-open" onclick="openUrl()">eBay で開く</button>
+      <button type="button" class="btn btn-copy" id="copyBtn" onclick="copyUrl()"><i class="ti ti-copy" aria-hidden="true"></i>コピー</button>
+      <button type="button" class="btn btn-open" onclick="openUrl()"><i class="ti ti-external-link" aria-hidden="true"></i>eBay で開く</button>
     </div>
   </div>
 </div>
@@ -837,9 +870,9 @@
     if (!currentUrl) return;
     navigator.clipboard.writeText(currentUrl).then(() => {
       const btn = document.getElementById('copyBtn');
-      btn.textContent = 'コピー済み ✓';
+      btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i>コピー済み';
       btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 1800);
+      setTimeout(() => { btn.innerHTML = '<i class="ti ti-copy" aria-hidden="true"></i>コピー'; btn.classList.remove('copied'); }, 1800);
     });
   }
 
@@ -992,9 +1025,9 @@
         </div>
         ${urlRow}
         <div class="preset-actions">
-          <button class="preset-btn primary" onclick="openPresetToday(${i})">今日で開く</button>
-          <button class="preset-btn" onclick="applyPreset(${i})">設定読込</button>
-          <button class="preset-btn del" onclick="deletePreset(${i})">削除</button>
+          <button class="preset-btn primary" onclick="openPresetToday(${i})"><i class="ti ti-external-link" aria-hidden="true"></i>今日で開く</button>
+          <button class="preset-btn" onclick="applyPreset(${i})"><i class="ti ti-download" aria-hidden="true"></i>設定読込</button>
+          <button class="preset-btn del" onclick="deletePreset(${i})"><i class="ti ti-trash" aria-hidden="true"></i>削除</button>
         </div>
       </div>`;
     }).join('');
