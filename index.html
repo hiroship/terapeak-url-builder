@@ -715,7 +715,7 @@
   // --- URL generation ---
   let currentUrl = '';
 
-  function generateUrl() {
+  function buildResearchUrl(offsetOverride) {
     const marketplace = document.getElementById('marketplace').value;
     const tabName = document.getElementById('tabName').value;
     const dayRangeVal = parseInt(document.getElementById('dayRange').value) || 7;
@@ -743,7 +743,7 @@
     } else {
       const s = document.getElementById('startDate').value;
       const e = document.getElementById('endDate').value;
-      if (!s || !e) { document.getElementById('urlOutput').textContent = '⚠ 開始日と終了日を入力してください'; return; }
+      if (!s || !e) { document.getElementById('urlOutput').textContent = '⚠ 開始日と終了日を入力してください'; return ''; }
       startMs = new Date(s + 'T00:00:00').getTime();
       endMs   = new Date(e + 'T00:00:00').getTime();
       dayRange = Math.round((endMs - startMs) / 86400000);
@@ -761,13 +761,18 @@
     if (sellerCountry) params.set('sellerCountry', `SellerLocation:::${sellerCountry}`);
     const conditionIds = [...document.querySelectorAll('#conditionGroup input:checked')].map(el => el.value);
     conditionIds.forEach(id => params.append('conditionId', id));
-    params.set('offset', document.getElementById('offset').value || '0');
+    params.set('offset', String(offsetOverride ?? (document.getElementById('offset').value || '0')));
     params.set('limit', document.getElementById('limit').value || '50');
     params.set('sorting', sorting);
     params.set('tabName', tabName);
     params.set('tz', tz);
 
-    currentUrl = `https://www.ebay.com/sh/research?${params.toString()}`;
+    return `https://www.ebay.com/sh/research?${params.toString()}`;
+  }
+
+  function generateUrl() {
+    currentUrl = buildResearchUrl();
+    if (!currentUrl) return;
     document.getElementById('urlOutput').textContent = currentUrl;
 
     updatePager();
@@ -825,18 +830,22 @@
     const limit = parseInt(document.getElementById('limit').value) || 50;
     const startOffset = parseInt(document.getElementById('offset').value) || 0;
 
-    const urls = [];
-    for (let i = 0; i < 10; i++) {
-      setOffsetValue(startOffset + i * limit);
-      generateUrl();
-      urls.push(currentUrl);
-    }
-    // フォームを元のオフセットに戻し、一時追加した選択肢を整理
-    rebuildOffsetOptions();
-    setOffsetValue(startOffset);
-    generateUrl();
+    const urls = Array.from({ length: 10 }, (_, i) => buildResearchUrl(startOffset + i * limit)).filter(Boolean);
+    if (!urls.length) return;
 
-    urls.forEach(u => window.open(u, '_blank'));
+    // サーバ配信時は複数の直接URLオープンがポップアップ扱いされやすい。
+    // クリック処理中に空タブを先に確保してからURLを割り当てる。
+    const opened = urls.map(() => window.open('about:blank', '_blank'));
+    opened.forEach((tab, i) => {
+      if (!tab) return;
+      tab.opener = null;
+      tab.location.href = urls[i];
+    });
+    const blocked = opened.filter(tab => !tab).length;
+    if (blocked) {
+      navigator.clipboard?.writeText(urls.join('\n'));
+      alert(`${blocked}ページ分のタブがブラウザにブロックされました。\n10P分のURLをクリップボードへコピーしました。ポップアップ許可後に再実行してください。`);
+    }
   }
 
   // --- クイック期間切替 ---
